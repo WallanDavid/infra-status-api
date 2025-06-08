@@ -1,54 +1,145 @@
-# React + TypeScript + Vite
+# 📊 Infra Status API + Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Painel de monitoramento em tempo real com dados do [UptimeRobot](https://uptimerobot.com/), construído com:
 
-Currently, two official plugins are available:
+- 🐍 FastAPI (Backend)  
+- ⚡ React + Vite + Tailwind (Frontend)  
+- 🐳 Docker + Docker Compose  
+- 📈 Chart.js via react-chartjs-2  
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 📸 Demonstração
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+![screenshot](./docs/screenshot.png)
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+---
+
+## 🚀 Como rodar localmente
+
+### 1. Clone o projeto
+
+```bash
+git clone https://github.com/seunome/infra-status-api.git
+cd infra-status-api
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Crie um arquivo `.env`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Crie o arquivo `.env` com sua API Key do UptimeRobot e os IDs dos monitores:
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```env
+UPTIMEROBOT_API_KEY=suachaveaqui
+UPTIMEROBOT_MONITORS=12345678-87654321-98765432
 ```
+
+Você pode listar vários monitores separados por hífen.
+
+### 3. Execute com Docker
+
+```bash
+docker-compose up --build
+```
+
+- Frontend: http://localhost:5173  
+- Backend API: http://localhost:8000/status
+
+---
+
+## 🧱 Estrutura do projeto
+
+```bash
+infra-status-api/
+├── infra-dashboard/         # Frontend React
+├── services/                # Lógica para integração com UptimeRobot
+├── .env                     # Chaves secretas
+├── main.py                  # FastAPI App
+├── requirements.txt         # Dependências Python
+├── Dockerfile.backend       # Container backend
+├── Dockerfile.frontend      # Container frontend
+└── docker-compose.yml       # Orquestração
+```
+
+---
+
+## 🖼️ Interface
+
+- Lista todos os monitores definidos no `.env`  
+- Mostra o status e o gráfico de resposta (ms) de cada monitor  
+- Atualização automática a cada 30 segundos  
+
+---
+
+## 🐳 Docker Compose
+
+### Backend – `Dockerfile.backend`
+
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir uvicorn[standard]
+COPY . .
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+### Frontend – `Dockerfile.frontend`
+
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY infra-dashboard/ .
+RUN npm install && npm run build
+RUN npm install -g serve
+CMD ["serve", "-s", "dist", "-l", "5173"]
+```
+
+### Compose – `docker-compose.yml`
+
+```yaml
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "5173:5173"
+```
+
+---
+
+## 🛠 Tecnologias utilizadas
+
+- FastAPI  
+- UptimeRobot API v2  
+- React + Vite  
+- Tailwind CSS  
+- Chart.js  
+- Docker  
+
+---
+
+## 🧪 Futuras melhorias
+
+- 📦 Deploy gratuito (Render, Railway ou Vercel)  
+- 📧 Alerta por e-mail em caso de queda  
+- 📥 Exportação de histórico  
+- 🔐 Autenticação de painel  
+- 🎨 Temas (dark/light)  
+
+---
+
+## 🧑‍💻 Autor
+
+Desenvolvido por **Wallan**  
+📧 bobwallan2@gmail.com  
+🔗 [github.com/WallanDavid](https://github.com/WallanDavid)
